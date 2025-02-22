@@ -3,5 +3,4 @@ export interface Persona {
   name: string;
   cheat_sheet: string;
   category_id: string;
-  created_at: string;
 }

@@ -3,14 +3,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { CreatePersona } from "@/components/persona/create-persona";
 import { PersonasTable } from "@/components/persona/personas-table";
-
-interface Persona {
-  id: number;
-  name: string;
-  cheat_sheet: string;
-  category_id: string;
-  created_at: string;
-}
+import { Persona } from "@/types/persona";
 
 export default function PersonaPage() {
   const supabase = createClient();

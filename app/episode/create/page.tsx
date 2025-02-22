@@ -12,6 +12,14 @@ import { generateText } from "@/utils/openai";
 import { Voice } from "@/types/voice";
 import { ELEVEN_LABS_VOICES } from "@/types/voice";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { LEVELS } from "@/types/level";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CreateEpisodePage() {
   const router = useRouter();
@@ -27,6 +35,7 @@ export default function CreateEpisodePage() {
     voice_id: "",
     voice_name: "",
     type: "single",
+    level_id: "",
   });
 
   const generateAudio = async (
@@ -98,6 +107,7 @@ export default function CreateEpisodePage() {
         audio_url: audioUrl,
         voice_id: voice.voice_id,
         voice_name: voice.name,
+        level_id: newEpisode.level_id,
       };
 
       const { error } = await supabase
@@ -121,24 +131,47 @@ export default function CreateEpisodePage() {
       <h1 className="text-2xl font-bold mb-6">Create New Episode</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Type</Label>
-            <RadioGroup
-              value={newEpisode.type}
-              onValueChange={(value) =>
-                setNewEpisode({ ...newEpisode, type: value })
-              }
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="single" id="single" />
-                <Label htmlFor="single">Single</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="series" id="series" />
-                <Label htmlFor="series">Series</Label>
-              </div>
-            </RadioGroup>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <RadioGroup
+                value={newEpisode.type}
+                onValueChange={(value) =>
+                  setNewEpisode({ ...newEpisode, type: value })
+                }
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="single" id="single" />
+                  <Label htmlFor="single">Single</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="series" id="series" />
+                  <Label htmlFor="series">Series</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2 w-fit">
+              <Label>Language Level</Label>
+              <Select
+                value={newEpisode.level_id}
+                onValueChange={(value) =>
+                  setNewEpisode({ ...newEpisode, level_id: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEVELS.map((level) => (
+                    <SelectItem key={level.id} value={level.id.toString()}>
+                      {level.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
