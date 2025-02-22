@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { generateText } from "@/utils/openai";
+import { Voice } from "@/types/voice";
+import { ELEVEN_LABS_VOICES } from "@/types/voice";
 
 export default function CreateEpisodePage() {
   const router = useRouter();
@@ -23,6 +25,38 @@ export default function CreateEpisodePage() {
     voice_id: "",
     voice_name: "",
   });
+
+  const generateAudio = async (
+    text: string
+  ): Promise<{ audioUrl: string; voice: Voice }> => {
+    const voice = ELEVEN_LABS_VOICES[0];
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice.voice_id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || "",
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    return { audioUrl, voice };
+  };
 
   const handleGenerateText = async () => {
     if (!newEpisode.title) {
