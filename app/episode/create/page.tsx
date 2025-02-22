@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ElevenLabsAudio } from "@/components/episode/eleven-labs-audio";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CategorySelect } from "@/components/persona/category-select";
+import { Persona } from "@/types/persona";
 
 export default function CreateEpisodePage() {
   const router = useRouter();
@@ -31,44 +32,25 @@ export default function CreateEpisodePage() {
     title: "",
     description: "",
     text: "",
-    audio_files: [""],
-    voice_id: "",
-    voice_name: "",
     type: "single",
     level_id: "",
+    persona_id: "",
   });
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState("");
 
-  const generateAudio = async (
-    text: string
-  ): Promise<{ audioUrl: string; voice: Voice }> => {
-    const voice = ELEVEN_LABS_VOICES[0];
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice.voice_id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "xi-api-key": process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || "",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+  useEffect(() => {
+    if (selectedGenre) {
+      const fetchPersonas = async () => {
+        const { data } = await supabase
+          .from("persona")
+          .select("*")
+          .eq("category_id", selectedGenre);
+        setPersonas(data || []);
+      };
+      fetchPersonas();
     }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    return { audioUrl, voice };
-  };
+  }, [selectedGenre, supabase]);
 
   const handleGenerateText = async () => {
     if (!newEpisode.title) {
@@ -97,17 +79,12 @@ export default function CreateEpisodePage() {
     }
 
     try {
-      setIsGeneratingAudio(true);
-      const { audioUrl, voice } = await generateAudio(newEpisode.text);
-
       const episodeToCreate = {
         title: newEpisode.title,
         description: newEpisode.description,
         text: newEpisode.text,
-        audio_url: audioUrl,
-        voice_id: voice.voice_id,
-        voice_name: voice.name,
         level_id: newEpisode.level_id,
+        persona_id: newEpisode.persona_id,
       };
 
       const { error } = await supabase
@@ -121,8 +98,6 @@ export default function CreateEpisodePage() {
     } catch (error) {
       console.error("Error creating episode:", error);
       toast.error("Failed to create episode. Please try again.");
-    } finally {
-      setIsGeneratingAudio(false);
     }
   };
 
@@ -131,6 +106,17 @@ export default function CreateEpisodePage() {
       <h1 className="text-2xl font-bold mb-6">Create New Episode</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              type="text"
+              value={newEpisode.title}
+              onChange={(e) =>
+                setNewEpisode({ ...newEpisode, title: e.target.value })
+              }
+              required
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Type</Label>
@@ -151,39 +137,47 @@ export default function CreateEpisodePage() {
                 </div>
               </RadioGroup>
             </div>
-
-            <div className="space-y-2 w-fit">
-              <Label>Language Level</Label>
-              <Select
-                value={newEpisode.level_id}
-                onValueChange={(value) =>
-                  setNewEpisode({ ...newEpisode, level_id: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LEVELS.map((level) => (
-                    <SelectItem key={level.id} value={level.id.toString()}>
-                      {level.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Genre</Label>
+              <CategorySelect
+                value={selectedGenre}
+                onValueChange={setSelectedGenre}
+                showAddButton={false}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              type="text"
-              value={newEpisode.title}
-              onChange={(e) =>
-                setNewEpisode({ ...newEpisode, title: e.target.value })
-              }
-              required
-            />
+            {selectedGenre && (
+              <div className="space-y-2">
+                <Label>Available Personas</Label>
+                <RadioGroup
+                  value={newEpisode.persona_id}
+                  onValueChange={(value) =>
+                    setNewEpisode({ ...newEpisode, persona_id: value })
+                  }
+                  className="border rounded-md p-2 space-y-2"
+                >
+                  {personas.map((persona) => (
+                    <div
+                      key={persona.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <RadioGroupItem
+                        value={persona.id.toString()}
+                        id={`persona-${persona.id}`}
+                      />
+                      <Label
+                        htmlFor={`persona-${persona.id}`}
+                        className="text-sm"
+                      >
+                        {persona.name}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
@@ -194,39 +188,6 @@ export default function CreateEpisodePage() {
               }
               required
               placeholder="Enter episode description"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Text for Audio</Label>
-            <div className="flex gap-2 mb-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGenerateText}
-                disabled={isGeneratingText || !newEpisode.title}
-              >
-                {isGeneratingText ? "Generating..." : "Generate Text"}
-              </Button>
-            </div>
-            <Textarea
-              value={newEpisode.text}
-              onChange={(e) =>
-                setNewEpisode({ ...newEpisode, text: e.target.value })
-              }
-              placeholder="Enter text to convert to speech..."
-              rows={8}
-            />
-            <ElevenLabsAudio
-              text={newEpisode.text}
-              onAudioGenerated={(audioUrl, voice) => {
-                setNewEpisode((prev) => ({
-                  ...prev,
-                  audio_files: [audioUrl],
-                  voice_id: voice.voice_id,
-                  voice_name: voice.name,
-                }));
-              }}
-              showVoiceSelect={true}
             />
           </div>
         </div>

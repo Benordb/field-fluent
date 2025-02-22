@@ -28,9 +28,14 @@ interface Category {
 interface CategorySelectProps {
   value: string;
   onValueChange: (value: string) => void;
+  showAddButton?: boolean;
 }
 
-export function CategorySelect({ value, onValueChange }: CategorySelectProps) {
+export function CategorySelect({
+  value,
+  onValueChange,
+  showAddButton = true,
+}: CategorySelectProps) {
   const supabase = createClient();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -97,37 +102,39 @@ export function CategorySelect({ value, onValueChange }: CategorySelectProps) {
             ))}
           </SelectContent>
         </Select>
-        <Dialog open={isCreatingNew} onOpenChange={setIsCreatingNew}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="shrink-0"
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Category</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Enter category name"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-              />
+        {showAddButton && (
+          <Dialog open={isCreatingNew} onOpenChange={setIsCreatingNew}>
+            <DialogTrigger asChild>
               <Button
-                onClick={handleCreateCategory}
-                disabled={isLoading}
-                className="w-full"
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
               >
-                {isLoading ? "Creating..." : "Create Category"}
+                <PlusCircle className="h-4 w-4" />
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Category</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Enter category name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <Button
+                  onClick={handleCreateCategory}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? "Creating..." : "Create Category"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
