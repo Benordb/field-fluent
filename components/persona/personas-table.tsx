@@ -48,10 +48,9 @@ export function PersonasTable({ personas }: PersonasTableProps) {
   }, [supabase]);
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find((c) => c.id.toString() === categoryId);
+    const category = categories.find((c) => c.id.toString() == categoryId);
     return category?.name || "Unknown";
   };
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -59,7 +58,7 @@ export function PersonasTable({ personas }: PersonasTableProps) {
           <TableRow>
             <TableHead>ID</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead>
+            <TableHead>Genre</TableHead>
             <TableHead>Cheat Sheet</TableHead>
             <TableHead>Created At</TableHead>
           </TableRow>

@@ -11,12 +11,14 @@ import { useRouter } from "next/navigation";
 import { generateText } from "@/utils/openai";
 import { Voice } from "@/types/voice";
 import { ELEVEN_LABS_VOICES } from "@/types/voice";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function CreateEpisodePage() {
   const router = useRouter();
   const supabase = createClient();
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
+  const [mode, setMode] = useState("single");
   const [newEpisode, setNewEpisode] = useState({
     title: "",
     description: "",
@@ -24,6 +26,7 @@ export default function CreateEpisodePage() {
     audio_files: [""],
     voice_id: "",
     voice_name: "",
+    type: "single",
   });
 
   const generateAudio = async (
@@ -117,63 +120,85 @@ export default function CreateEpisodePage() {
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Create New Episode</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label>Title</Label>
-          <Input
-            type="text"
-            value={newEpisode.title}
-            onChange={(e) =>
-              setNewEpisode({ ...newEpisode, title: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Description</Label>
-          <Textarea
-            value={newEpisode.description}
-            onChange={(e) =>
-              setNewEpisode({ ...newEpisode, description: e.target.value })
-            }
-            required
-            placeholder="Enter episode description"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Text for Audio</Label>
-          <div className="flex gap-2 mb-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGenerateText}
-              disabled={isGeneratingText || !newEpisode.title}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <RadioGroup
+              value={newEpisode.type}
+              onValueChange={(value) =>
+                setNewEpisode({ ...newEpisode, type: value })
+              }
+              className="flex gap-4"
             >
-              {isGeneratingText ? "Generating..." : "Generate Text"}
-            </Button>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="single" id="single" />
+                <Label htmlFor="single">Single</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="series" id="series" />
+                <Label htmlFor="series">Series</Label>
+              </div>
+            </RadioGroup>
           </div>
-          <Textarea
-            value={newEpisode.text}
-            onChange={(e) =>
-              setNewEpisode({ ...newEpisode, text: e.target.value })
-            }
-            placeholder="Enter text to convert to speech..."
-            rows={8}
-          />
-          <ElevenLabsAudio
-            text={newEpisode.text}
-            onAudioGenerated={(audioUrl, voice) => {
-              setNewEpisode((prev) => ({
-                ...prev,
-                audio_files: [audioUrl],
-                voice_id: voice.voice_id,
-                voice_name: voice.name,
-              }));
-            }}
-            showVoiceSelect={true}
-          />
+
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              type="text"
+              value={newEpisode.title}
+              onChange={(e) =>
+                setNewEpisode({ ...newEpisode, title: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={newEpisode.description}
+              onChange={(e) =>
+                setNewEpisode({ ...newEpisode, description: e.target.value })
+              }
+              required
+              placeholder="Enter episode description"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Text for Audio</Label>
+            <div className="flex gap-2 mb-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGenerateText}
+                disabled={isGeneratingText || !newEpisode.title}
+              >
+                {isGeneratingText ? "Generating..." : "Generate Text"}
+              </Button>
+            </div>
+            <Textarea
+              value={newEpisode.text}
+              onChange={(e) =>
+                setNewEpisode({ ...newEpisode, text: e.target.value })
+              }
+              placeholder="Enter text to convert to speech..."
+              rows={8}
+            />
+            <ElevenLabsAudio
+              text={newEpisode.text}
+              onAudioGenerated={(audioUrl, voice) => {
+                setNewEpisode((prev) => ({
+                  ...prev,
+                  audio_files: [audioUrl],
+                  voice_id: voice.voice_id,
+                  voice_name: voice.name,
+                }));
+              }}
+              showVoiceSelect={true}
+            />
+          </div>
         </div>
         <Button type="submit" disabled={isGeneratingAudio}>
-          {isGeneratingAudio ? "Generating Audio..." : "Create Episode"}
+          {isGeneratingAudio ? "Publishing..." : "Publish"}
         </Button>
       </form>
     </div>

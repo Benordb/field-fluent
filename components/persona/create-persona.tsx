@@ -110,7 +110,7 @@ export function CreatePersona({ personas, setPersonas }: CreatePersonaProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>Genre</Label>
             <CategorySelect
               value={newPersona.category_id}
               onValueChange={(value) =>

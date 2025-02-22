@@ -87,7 +87,7 @@ export function CategorySelect({ value, onValueChange }: CategorySelectProps) {
       <div className="flex items-center gap-2">
         <Select value={value} onValueChange={onValueChange} required>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="Select a genre" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (

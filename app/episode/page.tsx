@@ -24,6 +24,8 @@ const AI_MODELS = [
   { id: "gpt-4", name: "GPT-4" },
   { id: "gpt-4-turbo-preview", name: "GPT-4 Turbo" },
   { id: "o3-mini", name: "GPT-o3-mini" },
+  { id: "o1-preview", name: "GPT-o1-preview" },
+  { id: "o1-mini", name: "GPT-o1-mini" },
 ];
 
 export default function EpisodesPage() {
